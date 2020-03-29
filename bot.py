@@ -1,15 +1,14 @@
-from pprint import pprint
 import telebot
+
 from rates import *
+from env import *
+from pprint import pprint
+
 import requests
 import math
 
-BASE_URL = 'https://api.telegram.org/bot'
-TOKEN = '1005433090:AAFqW0Z3CxmjF2yaX_MEGlKYW3bhNq5wHjc'
-
 
 bot = telebot.TeleBot(TOKEN)
-
 
 need_sum = 0
 all_sum = 0
@@ -27,13 +26,16 @@ def start_message(message):
 
 def get_need_sum(message):
     global need_sum
-    while need_sum == 0:
-        try:
-            need_sum = int(message.text)
-        except:
-            bot.send_message(message.from_user.id, 'incorrect number')
-    bot.send_message(message.from_user.id, 'Cool, I saved your number(' + str(need_sum) + ').',
-                     reply_markup=main_keyboard)
+    flag = 1
+    try:
+        need_sum = int(message.text)
+    except:
+        bot.send_message(message.from_user.id, 'incorrect number, try again')
+        bot.register_next_step_handler(message, get_need_sum)
+        flag = 0
+    if flag:
+        bot.send_message(message.from_user.id, 'Cool, I saved your number(' + str(need_sum) + ' BYN).',
+                         reply_markup=main_keyboard)
 
 
 @bot.message_handler(content_types=['text'])
@@ -45,11 +47,10 @@ def send_text(message):
     else:
         cur_sum = 0
         global all_sum
-        while cur_sum == 0:
-            try:
-                cur_sum = int(message.text)
-            except:
-                bot.send_message(message.from_user.id, 'incorrect number')
+        try:
+            cur_sum = int(message.text)
+        except:
+            bot.send_message(message.from_user.id, 'incorrect number')
         all_sum += cur_sum
         global need_sum
         if need_sum:
@@ -57,7 +58,7 @@ def send_text(message):
         else:
             percent = 101
 
-        out = 'Ok, now you have: ' + str(all_sum) + '\n' + 'It`s ' + str(percent) + '%'
+        out = 'Saved! now you have: ' + str(all_sum) + ' BYN\n' + 'It`s ' + str(percent) + '%'
         bot.send_message(message.from_user.id, out)
 
 
